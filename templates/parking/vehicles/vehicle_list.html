@@ -1,0 +1,60 @@
+{% extends 'base/main.html' %}
+
+{% block title %}My Vehicles - Smart Parking System{% endblock %}
+
+{% block page_title %}My Vehicles{% endblock %}
+
+{% block page_actions %}
+<a href="{% url 'base:vehicle_create' %}" class="btn btn-primary">
+    <i class="fas fa-plus me-2"></i> Add Vehicle
+</a>
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Vehicles</li>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row">
+        {% for vehicle in vehicles %}
+        <div class="col-md-6 col-lg-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-3">
+                        <h5 class="card-title mb-0">{{ vehicle.vehicle_number }}</h5>
+                        {% if vehicle.is_default %}
+                        <span class="badge bg-primary">Default</span>
+                        {% endif %}
+                    </div>
+                    <p class="card-text">
+                        <strong>Type:</strong> {{ vehicle.get_vehicle_type_display }}<br>
+                        <strong>Brand:</strong> {{ vehicle.brand|default:"-" }}<br>
+                        <strong>Model:</strong> {{ vehicle.model|default:"-" }}<br>
+                        <strong>Color:</strong> {{ vehicle.color|default:"-" }}
+                    </p>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'base:vehicle_update' vehicle.pk %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i> Edit
+                        </a>
+                        <a href="{% url 'base:vehicle_delete' vehicle.pk %}" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash"></i> Delete
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-car fa-3x d-block mb-3"></i>
+                <h5>No vehicles registered</h5>
+                <p>Add your first vehicle to make reservations.</p>
+                <a href="{% url 'base:vehicle_create' %}" class="btn btn-primary">Add Vehicle</a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

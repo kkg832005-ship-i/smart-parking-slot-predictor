@@ -1,0 +1,125 @@
+{% extends 'base/main.html' %}
+
+{% block title %}Reservation {{ reservation.reservation_code }} - Smart Parking System{% endblock %}
+
+{% block page_title %}Reservation Details{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'base:reservation_list' %}">Reservations</a></li>
+<li class="breadcrumb-item active">{{ reservation.reservation_code }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="row">
+        <div class="col-md-8 mb-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Reservation Information</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-bordered">
+                        <tr>
+                            <th style="width: 200px;">Reservation Code</th>
+                            <td><code>{{ reservation.reservation_code }}</code></td>
+                        </tr>
+                        <tr>
+                            <th>Status</th>
+                            <td>
+                                <span class="badge {% if reservation.status == 'CONFIRMED' %}bg-success{% elif reservation.status == 'CANCELLED' %}bg-danger{% elif reservation.status == 'COMPLETED' %}bg-secondary{% elif reservation.status == 'CHECKED_IN' %}bg-info{% else %}bg-warning{% endif %}">
+                                    {{ reservation.get_status_display }}
+                                </span>
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Parking Location</th>
+                            <td>{{ reservation.slot.zone.location.name }}</td>
+                        </tr>
+                        <tr>
+                            <th>Zone</th>
+                            <td>{{ reservation.slot.zone.name }} (Floor {{ reservation.slot.zone.floor_number }})</td>
+                        </tr>
+                        <tr>
+                            <th>Slot Number</th>
+                            <td>{{ reservation.slot.slot_number }}</td>
+                        </tr>
+                        <tr>
+                            <th>Vehicle</th>
+                            <td>{{ reservation.vehicle.vehicle_number }} - {{ reservation.vehicle.get_vehicle_type_display }}</td>
+                        </tr>
+                        <tr>
+                            <th>Start Time</th>
+                            <td>{{ reservation.start_time|date:"F d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>End Time</th>
+                            <td>{{ reservation.end_time|date:"F d, Y H:i" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Check In Time</th>
+                            <td>{{ reservation.actual_check_in|date:"F d, Y H:i"|default:"Not checked in" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Check Out Time</th>
+                            <td>{{ reservation.actual_check_out|date:"F d, Y H:i"|default:"Not checked out" }}</td>
+                        </tr>
+                        <tr>
+                            <th>Estimated Amount</th>
+                            <td>${{ reservation.estimated_amount|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <th>Final Amount</th>
+                            <td><strong>${{ reservation.final_amount|floatformat:2|default:"Pending" }}</strong></td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4 mb-4">
+            <!-- Actions Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        {% if reservation.status == 'CONFIRMED' %}
+                        <a href="{% url 'base:check_in' %}" class="btn btn-success">
+                            <i class="fas fa-sign-in-alt me-2"></i> Check In
+                        </a>
+                        <form method="post" action="{% url 'base:reservation_cancel' reservation.pk %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger w-100" onclick="return confirm('Cancel this reservation?')">
+                                <i class="fas fa-times me-2"></i> Cancel Reservation
+                            </button>
+                        </form>
+                        {% elif reservation.status == 'CHECKED_IN' %}
+                        <a href="{% url 'base:check_out' %}" class="btn btn-info">
+                            <i class="fas fa-sign-out-alt me-2"></i> Check Out
+                        </a>
+                        {% endif %}
+                        
+                        <button class="btn btn-secondary" onclick="window.print()">
+                            <i class="fas fa-print me-2"></i> Print Details
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- QR Code Card -->
+            {% if reservation.qr_code %}
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">QR Code</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ reservation.qr_code.url }}" alt="QR Code" class="img-fluid" style="max-width: 200px;">
+                    <p class="text-muted small mt-2">Scan at the entrance</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

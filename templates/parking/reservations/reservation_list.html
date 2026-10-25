@@ -1,0 +1,100 @@
+{% extends 'base/main.html' %}
+{% load static %}
+
+{% block title %}My Reservations - Smart Parking System{% endblock %}
+
+{% block page_title %}My Reservations{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Your Reservations</h5>
+            <a href="{% url 'base:reservation_create' %}" class="btn btn-success btn-sm">
+                <i class="fas fa-plus me-2"></i> New Reservation
+            </a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Reservation Code</th>
+                            <th>Location</th>
+                            <th>Slot</th>
+                            <th>Start Time</th>
+                            <th>End Time</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                            <th>Actions</th>
+                        </thead>
+                        <tbody>
+                            {% for reservation in reservations %}
+                            <tr>
+                                <td><code>{{ reservation.reservation_code }}</code></td>
+                                <td>{{ reservation.slot.zone.location.name }}</td>
+                                <td>{{ reservation.slot.slot_number }}</td>
+                                <td>{{ reservation.start_time|date:"M d, Y H:i" }}</td>
+                                <td>{{ reservation.end_time|date:"M d, Y H:i" }}</td>
+                                <td>
+                                    <span class="badge {% if reservation.status == 'CONFIRMED' %}bg-success{% elif reservation.status == 'COMPLETED' %}bg-secondary{% elif reservation.status == 'CANCELLED' %}bg-danger{% else %}bg-warning{% endif %}">
+                                        {{ reservation.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>${{ reservation.estimated_amount|floatformat:2 }}</td>
+                                <td>
+                                    <div class="btn-group btn-group-sm">
+                                        {% if reservation.status == 'CONFIRMED' %}
+                                        <a href="{% url 'base:check_in' %}" class="btn btn-success">
+                                            <i class="fas fa-sign-in-alt"></i>
+                                        </a>
+                                        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelModal{{ reservation.pk }}">
+                                            <i class="fas fa-times"></i>
+                                        </button>
+                                        {% elif reservation.status == 'CHECKED_IN' %}
+                                        <a href="{% url 'base:check_out' %}" class="btn btn-info">
+                                            <i class="fas fa-sign-out-alt"></i>
+                                        </a>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <!-- Cancel Modal -->
+                                    <div class="modal fade" id="cancelModal{{ reservation.pk }}" tabindex="-1">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Cancel Reservation</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    Are you sure you want to cancel reservation <strong>{{ reservation.reservation_code }}</strong>?
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <form method="post" action="{% url 'base:reservation_cancel' reservation.pk %}">
+                                                        {% csrf_token %}
+                                                        <button type="submit" class="btn btn-danger">Confirm Cancel</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="8" class="text-center py-5">
+                                    <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                                    <h5>No reservations found</h5>
+                                    <a href="{% url 'base:reservation_create' %}" class="btn btn-primary mt-2">Make a Reservation</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

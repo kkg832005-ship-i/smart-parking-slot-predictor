@@ -1,0 +1,178 @@
+{% extends 'base/main.html' %}
+{% load static %}
+
+{% block title %}Dashboard - Smart Parking System{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Welcome Section -->
+    <div class="welcome-section mb-4">
+        <h2>Welcome back, {{ user.get_full_name|default:user.username }}!</h2>
+        <p class="text-muted">Here's what's happening with your parking today.</p>
+    </div>
+    
+    <!-- Statistics Row -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Total Slots</div>
+                        <div class="stat-value">{{ total_slots }}</div>
+                    </div>
+                    <i class="fas fa-parking stat-icon"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Available Slots</div>
+                        <div class="stat-value text-success">{{ available_slots }}</div>
+                    </div>
+                    <i class="fas fa-check-circle stat-icon text-success"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Occupied Slots</div>
+                        <div class="stat-value text-danger">{{ occupied_slots }}</div>
+                    </div>
+                    <i class="fas fa-car stat-icon text-danger"></i>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="stat-card">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="stat-label">Today's Revenue</div>
+                        <div class="stat-value text-info">${{ today_revenue|floatformat:2 }}</div>
+                    </div>
+                    <i class="fas fa-dollar-sign stat-icon text-info"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Progress Bar -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <h6 class="mb-3">Overall Occupancy Rate</h6>
+            <div class="progress" style="height: 30px; border-radius: 15px;">
+                <div class="progress-bar bg-gradient" role="progressbar" 
+                     style="width: {{ occupancy_percentage }}%; border-radius: 15px;"
+                     aria-valuenow="{{ occupancy_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                    {{ occupancy_percentage|floatformat:1 }}% Full
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Quick Actions -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <a href="{% url 'base:search_slots' %}" class="text-decoration-none">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-search fa-3x text-primary mb-3"></i>
+                        <h5>Find Parking</h5>
+                        <p class="text-muted small">Search and book parking slots</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a href="{% url 'base:reservation_create' %}" class="text-decoration-none">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-calendar-plus fa-3x text-success mb-3"></i>
+                        <h5>Quick Booking</h5>
+                        <p class="text-muted small">Make a new reservation</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        <div class="col-md-4 mb-3">
+            <a href="{% url 'base:vehicle_create' %}" class="text-decoration-none">
+                <div class="card text-center h-100">
+                    <div class="card-body">
+                        <i class="fas fa-plus-circle fa-3x text-info mb-3"></i>
+                        <h5>Add Vehicle</h5>
+                        <p class="text-muted small">Register your vehicle</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Reservations -->
+    <div class="card">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">Recent Reservations</h5>
+            <a href="{% url 'base:reservation_list' %}" class="btn btn-sm btn-light">View All</a>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead>
+                        <tr>
+                            <th>Reservation Code</th>
+                            <th>Slot</th>
+                            <th>Date & Time</th>
+                            <th>Status</th>
+                            <th>Amount</th>
+                        </thead>
+                        <tbody>
+                            {% for reservation in recent_reservations %}
+                            <tr>
+                                <td><code>{{ reservation.reservation_code }}</code></td>
+                                <td>{{ reservation.slot.slot_number }}</td>
+                                <td>{{ reservation.start_time|date:"M d, H:i" }}</td>
+                                <td>
+                                    <span class="badge {% if reservation.status == 'CONFIRMED' %}bg-success{% elif reservation.status == 'COMPLETED' %}bg-secondary{% else %}bg-warning{% endif %}">
+                                        {{ reservation.get_status_display }}
+                                    </span>
+                                </td>
+                                <td>${{ reservation.estimated_amount|floatformat:2 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center py-4">
+                                    <i class="fas fa-calendar-times fa-2x text-muted mb-2"></i>
+                                    <p class="mb-0">No reservations yet</p>
+                                    <a href="{% url 'base:reservation_create' %}" class="btn btn-sm btn-primary mt-2">Book Now</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.bg-gradient {
+    background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+}
+
+.progress-bar {
+    font-weight: 600;
+    line-height: 30px;
+}
+
+.card a {
+    color: inherit;
+}
+
+.card a:hover .card {
+    transform: translateY(-5px);
+}
+</style>
+{% endblock %}

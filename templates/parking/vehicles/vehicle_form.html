@@ -1,0 +1,65 @@
+{% extends 'base/main.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} Vehicle - Smart Parking System{% endblock %}
+
+{% block page_title %}{% if form.instance.pk %}Edit{% else %}Add New{% endif %} Vehicle{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'base:vehicle_list' %}">Vehicles</a></li>
+<li class="breadcrumb-item active">{% if form.instance.pk %}Edit{% else %}Add{% endif %}</li>
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center fade-in">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Vehicle Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="mb-3">
+                        <label class="form-label">Vehicle Number *</label>
+                        <input type="text" name="vehicle_number" class="form-control" value="{{ form.vehicle_number.value|default:'' }}" required>
+                        {% if form.vehicle_number.errors %}
+                        <div class="text-danger small">{{ form.vehicle_number.errors }}</div>
+                        {% endif %}
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Vehicle Type *</label>
+                        <select name="vehicle_type" class="form-select" required>
+                            <option value="CAR" {% if form.vehicle_type.value == 'CAR' %}selected{% endif %}>Car</option>
+                            <option value="BIKE" {% if form.vehicle_type.value == 'BIKE' %}selected{% endif %}>Bike</option>
+                            <option value="EV" {% if form.vehicle_type.value == 'EV' %}selected{% endif %}>Electric Vehicle</option>
+                            <option value="OTHER" {% if form.vehicle_type.value == 'OTHER' %}selected{% endif %}>Other</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Brand</label>
+                            <input type="text" name="brand" class="form-control" value="{{ form.brand.value|default:'' }}">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Model</label>
+                            <input type="text" name="model" class="form-control" value="{{ form.model.value|default:'' }}">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Color</label>
+                        <input type="text" name="color" class="form-control" value="{{ form.color.value|default:'' }}">
+                    </div>
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" name="is_default" class="form-check-input" id="is_default" {% if form.is_default.value %}checked{% endif %}>
+                        <label class="form-check-label" for="is_default">Set as default vehicle</label>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="{% url 'base:vehicle_list' %}" class="btn btn-secondary">Cancel</a>
+                        <button type="submit" class="btn btn-primary">Save Vehicle</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

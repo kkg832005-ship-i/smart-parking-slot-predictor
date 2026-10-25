@@ -1,0 +1,144 @@
+{% extends 'base/main.html' %}
+
+{% block title %}{{ location.name }} - Smart Parking System{% endblock %}
+
+{% block page_title %}{{ location.name }}{% endblock %}
+
+{% block page_actions %}
+{% if user.role == 'ADMIN' or user.role == 'PARKING_MANAGER' %}
+<a href="{% url 'base:location_update' location.pk %}" class="btn btn-warning">
+    <i class="fas fa-edit me-2"></i> Edit
+</a>
+{% endif %}
+{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{% url 'base:location_list' %}">Locations</a></li>
+<li class="breadcrumb-item active">{{ location.name }}</li>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Location Info -->
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header">Location Details</div>
+                <div class="card-body">
+                    <p><strong>Type:</strong> {{ location.get_location_type_display }}</p>
+                    <p><strong>City:</strong> {{ location.city }}</p>
+                    <p><strong>Address:</strong> {{ location.address }}</p>
+                    <p><strong>Hours:</strong> 
+                        {% if location.is_24_hours %}24/7{% else %}
+                        {{ location.opening_time|time:"H:i" }} - {{ location.closing_time|time:"H:i" }}
+                        {% endif %}
+                    </p>
+                    <p><strong>Status:</strong> 
+                        <span class="badge {% if location.is_active %}bg-success{% else %}bg-danger{% endif %}">
+                            {% if location.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header">Statistics</div>
+                <div class="card-body">
+                    <p><strong>Total Zones:</strong> {{ zones.count }}</p>
+                    <p><strong>Total Slots:</strong> {{ total_slots }}</p>
+                    <p><strong>Available Slots:</strong> {{ available_slots }}</p>
+                    <p><strong>Today's Reservations:</strong> {{ today_reservations }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card">
+                <div class="card-header">Location Map</div>
+                <div class="card-body text-center">
+                    {% if location.latitude and location.longitude %}
+                    <div id="map" style="height: 200px;"></div>
+                    {% else %}
+                    <i class="fas fa-map-marker-alt fa-3x text-muted mb-2"></i>
+                    <p class="text-muted">No coordinates available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Zones and Slots -->
+    <div class="card">
+        <div class="card-header">
+            <h5 class="mb-0">Parking Zones</h5>
+        </div>
+        <div class="card-body">
+            <div class="accordion" id="zonesAccordion">
+                {% for zone in zones %}
+                <div class="accordion-item">
+                    <h2 class="accordion-header">
+                        <button class="accordion-button {% if not forloop.first %}collapsed{% endif %}" type="button" data-bs-toggle="collapse" data-bs-target="#zone{{ forloop.counter }}">
+                            <strong>{{ zone.name }}</strong> - Floor {{ zone.floor_number }}
+                            <span class="ms-3">
+                                <span class="badge bg-success">{{ zone.available_slots }} Available</span>
+                                <span class="badge bg-danger">{{ zone.occupied_slots }} Occupied</span>
+                            </span>
+                        </button>
+                    </h2>
+                    <div id="zone{{ forloop.counter }}" class="accordion-collapse collapse {% if forloop.first %}show{% endif %}" data-bs-parent="#zonesAccordion">
+                        <div class="accordion-body">
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Slot Number</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                            <th>Hourly Rate</th>
+                                            <th>EV Charger</th>
+                                        </thead>
+                                        <tbody>
+                                            {% for slot in zone.slots.all %}
+                                            <tr>
+                                                <td>{{ slot.slot_number }}</td>
+                                                <td>{{ slot.get_slot_type_display }}</td>
+                                                <td>
+                                                    <span class="badge {% if slot.status == 'AVAILABLE' %}bg-success{% elif slot.status == 'OCCUPIED' %}bg-danger{% else %}bg-warning{% endif %}">
+                                                        {{ slot.get_status_display }}
+                                                    </span>
+                                                </td>
+                                                <td>${{ slot.hourly_rate }}/hr</td>
+                                                <td>{% if slot.has_ev_charger %}<i class="fas fa-check text-success"></i>{% else %}<i class="fas fa-times text-danger"></i>{% endif %}</td>
+                                            </tr>
+                                            {% empty %}
+                                            <tr><td colspan="5" class="text-center">No slots in this zone</td></tr>
+                                            {% endfor %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <p class="text-center">No zones created yet.</p>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% if location.latitude and location.longitude %}
+<script>
+function initMap() {
+    var location = {lat: {{ location.latitude }}, lng: {{ location.longitude }}};
+    var map = new google.maps.Map(document.getElementById('map'), {
+        zoom: 15,
+        center: location
+    });
+    var marker = new google.maps.Marker({position: location, map: map});
+}
+</script>
+<script src="https://maps.googleapis.com/maps/api/js?key=YOUR_API_KEY&callback=initMap" async defer></script>
+{% endif %}
+{% endblock %}

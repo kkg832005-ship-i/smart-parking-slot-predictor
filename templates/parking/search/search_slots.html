@@ -1,0 +1,99 @@
+{% extends 'base/main.html' %}
+
+{% block title %}Find Parking - Smart Parking System{% endblock %}
+
+{% block page_title %}Find Available Parking{% endblock %}
+
+{% block breadcrumb %}
+<li class="breadcrumb-item active">Search</li>
+{% endblock %}
+
+{% block content %}
+<div class="fade-in">
+    <!-- Search Form -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label class="form-label">Location</label>
+                    {{ form.location }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Slot Type</label>
+                    {{ form.slot_type }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Start Time</label>
+                    {{ form.start_time }}
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label">Duration (hours)</label>
+                    {{ form.duration_hours }}
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <div class="form-check">
+                        {{ form.requires_ev_charger }}
+                        <label class="form-check-label">Requires EV Charger</label>
+                    </div>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search me-2"></i> Search Available Slots
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Results -->
+    {% if slots %}
+    <div class="row">
+        {% for slot in slots %}
+        <div class="col-md-6 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h5 class="mb-1">Slot {{ slot.slot_number }}</h5>
+                            <p class="mb-0 text-muted">
+                                {{ slot.zone.location.name }} - {{ slot.zone.name }} (Floor {{ slot.zone.floor_number }})
+                            </p>
+                        </div>
+                        <span class="badge bg-success">Available</span>
+                    </div>
+                    <hr>
+                    <div class="row">
+                        <div class="col-6">
+                            <small class="text-muted">Type:</small>
+                            <p>{{ slot.get_slot_type_display }}</p>
+                        </div>
+                        <div class="col-6">
+                            <small class="text-muted">Rate:</small>
+                            <p>${{ slot.hourly_rate }}/hour</p>
+                        </div>
+                        {% if slot.has_ev_charger %}
+                        <div class="col-12">
+                            <span class="badge bg-info">EV Charger Available</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="alert alert-success mb-0">
+                        <strong>Estimated Price:</strong> ${{ slot.estimated_price|floatformat:2 }}
+                        <a href="{% url 'base:reservation_create' %}?slot={{ slot.pk }}" class="btn btn-sm btn-primary float-end">
+                            Book Now <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% elif request.GET %}
+    <div class="alert alert-info text-center">
+        <i class="fas fa-info-circle fa-2x mb-2 d-block"></i>
+        <h5>No available slots found</h5>
+        <p>Try adjusting your search criteria.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

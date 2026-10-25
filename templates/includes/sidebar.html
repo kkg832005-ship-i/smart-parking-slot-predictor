@@ -1,0 +1,112 @@
+{% load static %}
+<!-- Sidebar Navigation -->
+<nav class="sidebar" style="position: fixed; left: 0; top: 0; width: 280px; height: 100vh; background: linear-gradient(135deg, #2b2d42 0%, #1a1a2e 100%); color: white; z-index: 1000; overflow-y: auto;">
+    <div class="sidebar-header p-4 text-center">
+        <img src="{% static 'images/logo.png' %}" alt="Logo" style="width: 60px; height: 60px; border-radius: 50%; margin-bottom: 15px;">
+        <h5 class="mb-0">Smart Parking</h5>
+        <small class="text-muted">Parking Management System</small>
+    </div>
+    
+    <hr class="bg-secondary my-2">
+    
+    <ul class="nav flex-column px-3">
+        <li class="nav-item mb-2">
+            <a class="nav-link text-white" href="{% url 'base:dashboard' %}">
+                <i class="fas fa-tachometer-alt me-3"></i> Dashboard
+            </a>
+        </li>
+        
+        {% if user.is_authenticated %}
+            {% if user.role == 'DRIVER' %}
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'base:search_slots' %}">
+                    <i class="fas fa-search me-3"></i> Find Parking
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'base:reservation_list' %}">
+                    <i class="fas fa-calendar-check me-3"></i> My Reservations
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'base:vehicle_list' %}">
+                    <i class="fas fa-car me-3"></i> My Vehicles
+                </a>
+            </li>
+            {% endif %}
+            
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'base:notification_list' %}">
+                    <i class="fas fa-bell me-3"></i> Notifications
+                    {% if unread_notifications_count > 0 %}
+                    <span class="badge bg-danger ms-2">{{ unread_notifications_count }}</span>
+                    {% endif %}
+                </a>
+            </li>
+            
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'base:profile' %}">
+                    <i class="fas fa-user me-3"></i> Profile
+                </a>
+            </li>
+            
+            <li class="nav-item mb-2">
+                <form method="post" action="{% url 'base:logout' %}" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-link nav-link text-white" style="text-decoration: none;">
+                        <i class="fas fa-sign-out-alt me-3"></i> Logout
+                    </button>
+                </form>
+            </li>
+        {% else %}
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'base:login' %}">
+                    <i class="fas fa-sign-in-alt me-3"></i> Login
+                </a>
+            </li>
+            <li class="nav-item mb-2">
+                <a class="nav-link text-white" href="{% url 'base:register' %}">
+                    <i class="fas fa-user-plus me-3"></i> Register
+                </a>
+            </li>
+        {% endif %}
+    </ul>
+</nav>
+
+<style>
+.sidebar {
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 5px;
+}
+
+.sidebar::-webkit-scrollbar-track {
+    background: #2b2d42;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background: #667eea;
+    border-radius: 5px;
+}
+
+.sidebar .nav-link {
+    padding: 10px 15px;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+}
+
+.sidebar .nav-link:hover {
+    background: rgba(102, 126, 234, 0.2);
+    transform: translateX(5px);
+}
+
+.sidebar .nav-link i {
+    width: 20px;
+}
+
+.sidebar-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+</style>
